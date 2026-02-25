@@ -1,15 +1,20 @@
-#ifndef INPUT_H
-#define INPUT_H
-
 #include "text_buffer.h"
+#include "file_io.h"
+#include "render.h"
+#include "input.h"
 
-// Initialize raw mode for terminal input
-void enable_raw_mode(void);
+int main() {
+    TextBuffer *buffer = init_text_buffer();
+    load_file(buffer, "example.c");
 
-// Restore normal terminal input mode
-void disable_raw_mode(void);
+    enable_raw_mode();
 
-// Process a single keypress and update the text buffer
-void process_keypress(TextBuffer *buffer);
+    while (1) {
+        render_text_buffer(buffer);
+        process_keypress(buffer);
+    }
 
-#endif // INPUT_H
+    disable_raw_mode();
+    free_text_buffer(buffer);
+    return 0;
+}
