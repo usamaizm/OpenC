@@ -3,13 +3,9 @@
 
 #include "text_buffer.h"
 
-// Initialize raw mode for terminal input
 void enable_raw_mode(void);
-
-// Restore normal terminal input mode
 void disable_raw_mode(void);
+/* Returns 1 to quit, 2 to save, and 0 to continue editing. */
+int process_keypress(TextBuffer *buffer);
 
-// Process a single keypress and update the text buffer
-void process_keypress(TextBuffer *buffer);
-
-#endif // INPUT_H
+#endif
