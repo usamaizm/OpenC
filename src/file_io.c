@@ -1,6 +1,10 @@
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "file_io.h"
 
@@ -80,17 +84,60 @@ int load_file(TextBuffer *buffer, const char *filename) {
 
 int save_file(TextBuffer *buffer, const char *filename) {
     if (!buffer || !filename) return -1;
-    FILE *file = fopen(filename, "wb");
-    if (!file) return -1;
+
+    size_t filename_length = strlen(filename);
+    if (filename_length > SIZE_MAX - sizeof(".tmp.XXXXXX")) return -1;
+
+    struct stat existing;
+    int has_existing = 0;
+    mode_t existing_mode = 0;
+    if (lstat(filename, &existing) == 0) {
+        if (!S_ISREG(existing.st_mode)) return -1;
+        has_existing = 1;
+        existing_mode = existing.st_mode & 0777;
+    } else if (errno != ENOENT) {
+        return -1;
+    }
+
+    char *temporary = malloc(filename_length + sizeof(".tmp.XXXXXX"));
+    if (!temporary) return -1;
+    (void)snprintf(temporary, filename_length + sizeof(".tmp.XXXXXX"),
+                   "%s.tmp.XXXXXX", filename);
+
+    int fd = mkstemp(temporary);
+    if (fd < 0) {
+        free(temporary);
+        return -1;
+    }
+    if (has_existing && fchmod(fd, existing_mode) != 0) {
+        (void)close(fd);
+        (void)unlink(temporary);
+        free(temporary);
+        return -1;
+    }
+
+    FILE *file = fdopen(fd, "wb");
+    if (!file) {
+        (void)close(fd);
+        (void)unlink(temporary);
+        free(temporary);
+        return -1;
+    }
+
     int status = 0;
     for (size_t i = 0; i < buffer->line_count; ++i) {
         size_t length = strlen(buffer->lines[i]);
         if (fwrite(buffer->lines[i], 1, length, file) != length ||
-            (i + 1 < buffer->line_count && fputc('\n', file) == EOF)) {
+            (i + 1 < buffer->line_count && fputc('\\n', file) == EOF)) {
             status = -1;
             break;
         }
     }
+    if (status == 0 && fflush(file) != 0) status = -1;
+    if (status == 0 && fsync(fd) != 0) status = -1;
     if (fclose(file) != 0) status = -1;
+    if (status == 0 && rename(temporary, filename) != 0) status = -1;
+    if (status != 0) (void)unlink(temporary);
+    free(temporary);
     return status;
 }
