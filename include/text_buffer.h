@@ -13,6 +13,7 @@ typedef struct {
 
 TextBuffer *init_text_buffer(void);
 void free_text_buffer(TextBuffer *buffer);
+int clear_text_buffer(TextBuffer *buffer);
 int append_line(TextBuffer *buffer, const char *line);
 int insert_character(TextBuffer *buffer, char c);
 int insert_newline(TextBuffer *buffer);
