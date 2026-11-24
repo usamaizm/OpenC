@@ -41,7 +41,7 @@ static int read_key(void) {
     return count == 1 ? (int)c : -1;
 }
 
-/* Returns 1 to quit, 2 to save, and 0 to continue editing. */
+/* Returns 1 to quit, 2 to save, 3 on input/buffer failure, and 0 to continue. */
 int process_keypress(TextBuffer *buffer) {
     int c = read_key();
     if (c < 0) return 3;
