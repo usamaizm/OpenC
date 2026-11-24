@@ -96,3 +96,10 @@ int main() {
 ## **License**
 
 Open C is released under the MIT License, allowing open-source collaboration and commercial usage.
+
+## Engineering status and build notes
+
+- [BUILDING.md](BUILDING.md) — current build limitations and recommended setup sequence.
+- [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) — source-level issues identified before a reliable build can be claimed.
+
+The current repository is an early terminal-editor prototype. Cross-platform IDE status is a goal, not an implemented capability.
