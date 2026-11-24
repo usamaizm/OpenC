@@ -23,12 +23,6 @@ int main(int argc, char **argv) {
             free_text_buffer(buffer);
             return 1;
         }
-        /* Discard the initial empty line when a file was loaded. */
-        if (buffer->line_count > 1 && buffer->lines[0][0] == '\0') {
-            free(buffer->lines[0]);
-            for (size_t i = 1; i < buffer->line_count; ++i) buffer->lines[i - 1] = buffer->lines[i];
-            --buffer->line_count;
-        }
     }
 
     if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO)) {
