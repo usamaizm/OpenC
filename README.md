@@ -1,110 +1,59 @@
-# **Open C**
+# OpenC
 
-## **A Pure-C, Cross-Platform IDE Built From Scratch**
+**OpenC is a C-first terminal text-editor prototype and the foundation for a future cross-platform C IDE.**
 
-Open C is a C-first IDE designed to create cross-platform C applications. Every core component — text buffer, file management, syntax highlighting — is written entirely in pure C, with no external GUI frameworks or libraries. Compiler integration (GCC/Clang) is optional and modular, allowing the IDE to function fully even without any compiler installed.
+The current implementation is a small POSIX terminal editor. It supports line-oriented text editing, cursor movement, file loading/saving, and a minimal keyboard workflow. A full IDE, syntax highlighting, compiler integration, GUI, and Windows terminal backend are future work—not current capabilities.
 
-This README serves as a guide for contributors and AI assistants to understand the architecture, purpose, and development plan of Open C.
+## Current status
 
----
+- C11 source code.
+- POSIX terminal input using termios and unistd.
+- Dynamic line-based text buffer.
+- File loading and saving, including long lines and final-newline preservation.
+- Arrow-key cursor movement, Enter, Backspace, Ctrl-S save, Ctrl-Q quit.
+- Automated tests for text-buffer operations and file I/O.
 
-## **Key Modules**
+## Build and test
 
-| **Module**             | **Purpose**                                                              |
-|-------------------------|--------------------------------------------------------------------------|
-| `text_buffer.c / .h`    | Core text storage, cursor tracking, line management, and editing.        |
-| `file_io.c / .h`        | Loading and saving files into the text buffer.                          |
-| `render.c / .h`         | OS-abstracted rendering of text to terminal or GUI framebuffer.         |
-| `input.c / .h`          | Low-level keyboard/mouse input handling for different platforms.        |
-| `syntax.c / .h`         | Tokenization and minimal syntax highlighting.                           |
-| `plugins.c / .h`        | Optional compiler plugin system (e.g., GCC, Clang).                    |
-| `main.c`                | Entry point to initialize and run the IDE.                              |
+Requires a C11 compiler and Make on a POSIX-like environment.
 
----
-
-## **Development Philosophy**
-
-1. **From Scratch**: The IDE core is hand-coded in pure C; no external GUI libraries or frameworks are used.  
-2. **Modular Design**: Each component is independent and interacts through clearly defined interfaces.  
-3. **Compiler Plugins Optional**: Open C works fully for editing and syntax highlighting, even without a compiler.  
-4. **Cross-Platform**: Minimal OS-specific code, abstracted for Linux, Windows, and macOS.
-
----
-
-## **Roadmap**
-
-### **Milestone 1: Core Text Buffer**
-- Dynamic text storage and line management.
-- Cursor movement, insertion/deletion of characters and lines.
-- Ready to connect to rendering and input modules.
-
-### **Milestone 2: File I/O**
-- Load files into the text buffer.
-- Save buffer contents to disk.
-
-### **Milestone 3: Rendering Engine**
-- Terminal-based rendering first, with optional GUI framebuffer later.
-- Display visible lines and cursor position.
-
-### **Milestone 4: Syntax Highlighting**
-- Basic C keyword highlighting using ANSI colors in the terminal.
-
-### **Milestone 5: Compiler Plugins**
-- Optional GCC/Clang integration using a modular plugin interface.
-
-### **Milestone 6: Advanced Features**
-- Support for multi-file projects, project templates, and debugging tools.
-
----
-
-## **Example Usage**
-
-Here's an example of how contributors can use the core modules in `text_buffer.c` and `file_io.c`:
-
-```c
-#include "text_buffer.h"
-#include "file_io.h"
-
-int main() {
-    TextBuffer *buffer = init_text_buffer();  // Initialize the text buffer
-
-    // Load a file into the text buffer
-    load_file(buffer, "example.c");
-
-    // Display the buffer contents
-    print_text_buffer(buffer);
-
-    // Save changes to a new file
-    save_file(buffer, "output.c");
-
-    free_text_buffer(buffer);  // Free memory
-    return 0;
-}
+```sh
+make
+make test
+./openc path/to/file.c
+make clean
 ```
 
----
+The editor starts with an empty buffer if the requested file does not exist. Press Ctrl-S to save and Ctrl-Q to exit. The current editor does not yet provide a save confirmation dialog or unsaved-change prompt.
 
-## **Contribution Guidelines**
+## Source layout
 
-- Follow the **pure-C, from-scratch philosophy**—avoid using external libraries or frameworks.  
-- Keep modules **modular and clearly named**.  
-- Document new features and functions in both the **README** and relevant header files.  
-- Open issues or submit pull requests for suggested improvements or bug fixes.
+- include/text_buffer.h and src/text_buffer.c — line storage, editing, and cursor state.
+- include/file_io.h and src/file_io.c — file loading and saving.
+- include/input.h and src/input.c — POSIX raw-terminal input and key handling.
+- include/render.h and src/render.c — ANSI terminal rendering.
+- src/main.c — application lifecycle.
+- tests/ — text-buffer and file-I/O tests.
 
----
+## Architecture direction
 
-## **License**
+The long-term goal is a C-first IDE for building cross-platform C applications. Keep the core editor independent from compiler integrations and platform-specific user interfaces. Introduce platform backends behind explicit interfaces rather than spreading POSIX assumptions through the editor core.
 
-Open C is released under the MIT License, allowing open-source collaboration and commercial usage.
+## Roadmap
 
-## Engineering status and build notes
+1. Expand editing operations and test coverage.
+2. Add robust terminal resizing, scrolling, and unsaved-change handling.
+3. Add syntax-aware editing and project/file navigation.
+4. Define compiler adapters for GCC and Clang.
+5. Introduce a platform abstraction and additional input/rendering backends.
+6. Add project templates, diagnostics, and debugging support.
 
-- [BUILDING.md](BUILDING.md) — current build limitations and recommended setup sequence.
-- [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) — source-level issues identified before a reliable build can be claimed.
+## Engineering notes
 
-The current repository is an early terminal-editor prototype. Cross-platform IDE status is a goal, not an implemented capability.
+- [BUILDING.md](BUILDING.md) contains current build notes.
+- [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) records issues to revisit.
+- [Ecosystem integration contract](https://github.com/usamaizm/AIDB/blob/main/docs/ECOSYSTEM_INTEGRATION.md) describes how OpenC fits into the wider project set.
 
+## License
 
-## Ecosystem integration
-
-This project is part of a set of independent, interoperable open projects. See the [ecosystem integration contract](https://github.com/usamaizm/AIDB/blob/main/docs/ECOSYSTEM_INTEGRATION.md) for its role, interoperability boundaries, and integration principles.
+See [LICENSE](LICENSE).
