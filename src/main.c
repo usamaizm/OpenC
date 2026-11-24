@@ -20,12 +20,12 @@ int main(int argc, char **argv) {
     FILE *probe = fopen(filename, "rb");
     if (probe) {
         if (fclose(probe) != 0 || load_file(buffer, filename) != 0) {
-            fprintf(stderr, "OpenC: failed to load %s\\n", filename);
+            fprintf(stderr, "OpenC: failed to load %s\n", filename);
             free_text_buffer(buffer);
             return 1;
         }
     } else if (errno != ENOENT) {
-        fprintf(stderr, "OpenC: unable to open %s\\n", filename);
+        fprintf(stderr, "OpenC: unable to open %s\n", filename);
         free_text_buffer(buffer);
         return 1;
     }
