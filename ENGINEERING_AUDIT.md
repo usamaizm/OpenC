@@ -14,8 +14,8 @@ The current backend uses termios, unistd, and ANSI terminal control. This is an 
 ### 3. Main loop had no exit path — resolved
 Ctrl-Q exits the loop; Ctrl-S saves the current file. Terminal settings are restored on normal exit and registered for process-exit cleanup. Raw-mode initialization failures are reported rather than silently entering a broken input loop.
 
-### 4. File I/O fixed-buffer and newline issues — substantially resolved
-The loader now grows its line buffer dynamically, handles long lines, resets the target buffer, and preserves final-newline structure. Save/load round-trip tests cover long lines, empty files, and trailing newlines. Broader error-injection and filesystem-permission tests remain open.
+### 4. File I/O fixed-buffer, newline, and save-integrity issues — substantially resolved
+The loader now grows its line buffer dynamically, handles long lines, resets the target buffer, and preserves final-newline structure. Saves now write to a temporary file in the target directory, flush and sync it, then atomically rename it into place. Existing regular-file permission bits are preserved; symlink and non-regular-file targets are refused rather than replaced. Tests cover long lines, empty files, trailing newlines, mode preservation, and symlink refusal. Broader error-injection tests remain open.
 
 ### 5. Input and buffer error propagation — improved
 The input loop now distinguishes normal quit/save from read or buffer-operation failures. Failures are surfaced after terminal settings are restored instead of being silently ignored. Terminal resize, interrupted escape sequences, and injected I/O failures still need dedicated tests.
