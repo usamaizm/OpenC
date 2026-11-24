@@ -44,18 +44,18 @@ static int read_key(void) {
 /* Returns 1 to quit, 2 to save, and 0 to continue editing. */
 int process_keypress(TextBuffer *buffer) {
     int c = read_key();
-    if (c < 0) return 1;
+    if (c < 0) return 3;
     if (c == 17) return 1; /* Ctrl-Q */
     if (c == 19) return 2; /* Ctrl-S */
 
     switch (c) {
         case 127:
         case 8:
-            (void)delete_character(buffer);
+            if (delete_character(buffer) != 0) return 3;
             break;
         case '\r':
         case '\n':
-            (void)insert_newline(buffer);
+            if (insert_newline(buffer) != 0) return 3;
             break;
         case 27: {
             int first = read_key();
@@ -71,7 +71,7 @@ int process_keypress(TextBuffer *buffer) {
             break;
         }
         default:
-            if (c >= 32 && c <= 126) (void)insert_character(buffer, (char)c);
+            if (c >= 32 && c <= 126 && insert_character(buffer, (char)c) != 0) return 3;
             break;
     }
     return 0;
