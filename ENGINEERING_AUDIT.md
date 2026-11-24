@@ -17,7 +17,10 @@ Ctrl-Q exits the loop; Ctrl-S saves the current file. Terminal settings are rest
 ### 4. File I/O fixed-buffer and newline issues — substantially resolved
 The loader now grows its line buffer dynamically, handles long lines, resets the target buffer, and preserves final-newline structure. Save/load round-trip tests cover long lines, empty files, and trailing newlines. Broader error-injection and filesystem-permission tests remain open.
 
-### 5. Allocation and growth handling — substantially resolved
+### 5. Input and buffer error propagation — improved
+The input loop now distinguishes normal quit/save from read or buffer-operation failures. Failures are surfaced after terminal settings are restored instead of being silently ignored. Terminal resize, interrupted escape sequences, and injected I/O failures still need dedicated tests.
+
+### 6. Allocation and growth handling — substantially resolved
 Text-buffer allocation and growth operations check allocation failures and guard size/capacity growth. The editor still needs broader fault-injection tests.
 
 ## Current verification
@@ -26,7 +29,7 @@ The CI workflow successfully built the editor and passed text-buffer and file-I/
 
 - [OpenC CI run](https://github.com/usamaizm/OpenC/actions/runs/45387578692)
 
-This verifies the supported Linux/POSIX build and the test cases in the workflow. It does not verify Windows, macOS, all terminal emulators, Unicode editing, or full IDE behavior.
+The latest [OpenC CI run](https://github.com/usamaizm/OpenC/actions/runs/45388774758) also passed after input-error propagation changes. This verifies the supported Linux/POSIX build and the test cases in the workflow. It does not verify Windows, macOS, all terminal emulators, Unicode editing, or full IDE behavior.
 
 ## Remaining priorities
 
