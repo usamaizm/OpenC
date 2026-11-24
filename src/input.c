@@ -2,81 +2,70 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
+
 #include "input.h"
 
-static struct termios orig_termios;
+static struct termios original_termios;
+static int raw_mode_enabled = 0;
 
-// Restore terminal settings on exit
 void disable_raw_mode(void) {
-    tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+    if (raw_mode_enabled) {
+        (void)tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios);
+        raw_mode_enabled = 0;
+    }
 }
 
-// Enable raw mode (disable echo and canonical input)
 void enable_raw_mode(void) {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disable_raw_mode);  // Restore on exit
-
-    struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ECHO | ICANON | ISIG); // Disable echo, canonical mode, signals
-    raw.c_iflag &= ~(IXON | ICRNL);         // Disable Ctrl-S/Q, carriage return
-    raw.c_cc[VMIN] = 1;  // Minimum number of bytes before read returns
-    raw.c_cc[VTIME] = 0; // No timeout
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+    if (tcgetattr(STDIN_FILENO, &original_termios) == -1) return;
+    struct termios raw = original_termios;
+    raw.c_lflag &= (tcflag_t)~(ECHO | ICANON);
+    raw.c_iflag &= (tcflag_t)~(IXON | ICRNL);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) return;
+    raw_mode_enabled = 1;
+    (void)atexit(disable_raw_mode);
 }
 
-// Helper function to read a single character
-static char read_key() {
-    char c;
-    if (read(STDIN_FILENO, &c, 1) == -1) exit(1);
-    return c;
+static int read_key(void) {
+    unsigned char c;
+    ssize_t count;
+    do { count = read(STDIN_FILENO, &c, 1); } while (count == -1);
+    return count == 1 ? (int)c : -1;
 }
 
-// Process a single keypress
-void process_keypress(TextBuffer *buffer) {
-    char c = read_key();
+/* Returns 1 to quit, 2 to save, and 0 to continue editing. */
+int process_keypress(TextBuffer *buffer) {
+    int c = read_key();
+    if (c < 0) return 1;
+    if (c == 17) return 1; /* Ctrl-Q */
+    if (c == 19) return 2; /* Ctrl-S */
 
     switch (c) {
-        case 127: // Backspace
-            if (buffer->cursor_col > 0 || buffer->cursor_row > 0) {
-                delete_char(buffer);
-            }
+        case 127:
+        case 8:
+            (void)delete_character(buffer);
             break;
-
-        case '\r': // Enter
+        case '\r':
         case '\n':
-            insert_newline(buffer);
+            (void)insert_newline(buffer);
             break;
-
-        case 27: { // Escape sequences (arrows)
-            char seq[2];
-            if (read(STDIN_FILENO, &seq[0], 1) == 0) break;
-            if (read(STDIN_FILENO, &seq[1], 1) == 0) break;
-
-            if (seq[0] == '[') {
-                switch (seq[1]) {
-                    case 'A': // Up
-                        move_cursor(buffer, -1, 0);
-                        break;
-                    case 'B': // Down
-                        move_cursor(buffer, 1, 0);
-                        break;
-                    case 'C': // Right
-                        move_cursor(buffer, 0, 1);
-                        break;
-                    case 'D': // Left
-                        move_cursor(buffer, 0, -1);
-                        break;
+        case 27: {
+            int first = read_key();
+            int second = read_key();
+            if (first == '[') {
+                switch (second) {
+                    case 'A': move_cursor(buffer, -1, 0); break;
+                    case 'B': move_cursor(buffer, 1, 0); break;
+                    case 'C': move_cursor(buffer, 0, 1); break;
+                    case 'D': move_cursor(buffer, 0, -1); break;
                 }
             }
             break;
         }
-
         default:
-            // Printable characters
-            if (c >= 32 && c <= 126) {
-                insert_char(buffer, c);
-            }
+            if (c >= 32 && c <= 126) (void)insert_character(buffer, (char)c);
             break;
     }
+    return 0;
 }
