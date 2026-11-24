@@ -31,7 +31,11 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    enable_raw_mode();
+    if (enable_raw_mode() != 0) {
+        fputs("OpenC: unable to enable terminal raw mode\\n", stderr);
+        free_text_buffer(buffer);
+        return 1;
+    }
     int action = 0;
     while (action == 0) {
         render_text_buffer(buffer);
