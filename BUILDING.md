@@ -1,31 +1,53 @@
-# Building Open C
+# Building OpenC
 
-**Current status:** The repository contains an early terminal-editor prototype, not yet a complete cross-platform IDE.
+**Current status:** The repository builds a small POSIX terminal-editor prototype. It is not yet a complete cross-platform IDE.
+
+## Prerequisites
+
+- A C11-compatible compiler.
+- GNU Make or a compatible Make implementation.
+- A POSIX-like terminal environment for interactive use.
+
+## Build and test
+
+From the repository root:
+
+```sh
+make
+make test
+./openc path/to/file.c
+make clean
+```
+
+The CI workflow builds the editor and runs the text-buffer and file-I/O tests on Ubuntu. See [the passing CI run](https://github.com/usamaizm/OpenC/actions/runs/45387578692).
 
 ## Source layout
 
-- `src/main.c` — current application entry point
-- `src/text_buffer.c` — text-buffer implementation (currently inconsistent with the public header/API)
-- `src/file_io.c` — file loading and saving
-- `src/input.c` — terminal input handling (POSIX-specific)
-- `src/render.c` — ANSI terminal rendering
-- `include/` — public headers
+- src/main.c — application entry point and lifecycle.
+- src/text_buffer.c — canonical line-based text buffer.
+- src/file_io.c — file loading and saving.
+- src/input.c — POSIX terminal input.
+- src/render.c — ANSI terminal rendering.
+- include/ — public interfaces.
+- tests/ — text-buffer and file-I/O tests.
 
-## Current build limitation
+## Current controls
 
-A reliable build command is not published yet. The current source files appear to have interface mismatches: for example, the text-buffer implementation defines a private structure and functions that do not match the names used by the entry point and other modules. The input layer uses POSIX `unistd.h` and `termios.h`, so it is not currently cross-platform.
+- Arrow keys — move the cursor.
+- Enter — split the current line.
+- Backspace — delete before the cursor or join with the previous line.
+- Ctrl-S — save the current file.
+- Ctrl-Q — quit.
 
-Do not treat this document as a successful build recipe.
+## Known limitations
 
-## Recommended next engineering steps
+- Terminal input currently depends on POSIX termios and unistd.
+- Rendering is ANSI terminal output; no GUI backend exists.
+- No syntax highlighting, compiler integration, project browser, debugger, or plugin host is implemented.
+- There is no unsaved-change confirmation or save-as dialog.
+- Terminal resize, scrolling, Unicode grapheme editing, and comprehensive terminal error recovery need additional work.
+- File-I/O tests cover long lines, empty files, and newline round-tripping; broader filesystem failure tests remain needed.
 
-1. Establish one canonical `TextBuffer` structure in `include/text_buffer.h`.
-2. Make all implementations include the canonical header rather than redefining structures.
-3. Reconcile function names and signatures across headers, implementations, and `main.c`.
-4. Define ownership, allocation-failure, and error-return conventions.
-5. Separate terminal backend code from editor core so Windows and other platforms can add a backend.
-6. Add a build system and unit tests only after the interfaces are consistent.
+## Validation rule
 
-## Validation
-
-A contribution is not build-verified until it compiles from a clean checkout with documented compiler versions and the automated tests pass.
+A contribution is build-verified only when the clean-checkout CI build and tests pass. A passing editor-core build does not establish cross-platform IDE support.
