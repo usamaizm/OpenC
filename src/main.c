@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     }
 
     if (enable_raw_mode() != 0) {
-        fputs("OpenC: unable to enable terminal raw mode\\n", stderr);
+        fputs("OpenC: unable to enable terminal raw mode\n", stderr);
         free_text_buffer(buffer);
         return 1;
     }
@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
     }
     disable_raw_mode();
 
-    int status = 0;
+    int status = action == 3 ? 1 : 0;
+    if (action == 3) fputs("OpenC: input or buffer operation failed\n", stderr);
     if (action == 2 && save_file(buffer, filename) != 0) {
         fprintf(stderr, "OpenC: failed to save %s\n", filename);
         status = 1;
