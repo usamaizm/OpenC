@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
@@ -15,22 +16,28 @@ void disable_raw_mode(void) {
     }
 }
 
-void enable_raw_mode(void) {
-    if (tcgetattr(STDIN_FILENO, &original_termios) == -1) return;
+int enable_raw_mode(void) {
+    if (tcgetattr(STDIN_FILENO, &original_termios) == -1) return -1;
     struct termios raw = original_termios;
     raw.c_lflag &= (tcflag_t)~(ECHO | ICANON);
     raw.c_iflag &= (tcflag_t)~(IXON | ICRNL);
     raw.c_cc[VMIN] = 1;
     raw.c_cc[VTIME] = 0;
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) return;
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) return -1;
     raw_mode_enabled = 1;
-    (void)atexit(disable_raw_mode);
+    if (atexit(disable_raw_mode) != 0) {
+        disable_raw_mode();
+        return -1;
+    }
+    return 0;
 }
 
 static int read_key(void) {
     unsigned char c;
     ssize_t count;
-    do { count = read(STDIN_FILENO, &c, 1); } while (count == -1);
+    do {
+        count = read(STDIN_FILENO, &c, 1);
+    } while (count == -1 && errno == EINTR);
     return count == 1 ? (int)c : -1;
 }
 
