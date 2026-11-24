@@ -49,7 +49,7 @@ int main(void) {
 
     FILE *trailing_newline = fopen(input_path, "wb");
     assert(trailing_newline != NULL);
-    assert(fwrite("tail\\n", 1, 5, trailing_newline) == 5);
+    assert(fwrite("tail\n", 1, 5, trailing_newline) == 5);
     assert(fclose(trailing_newline) == 0);
     assert(load_file(buffer, input_path) == 0);
     assert(buffer->line_count == 2);
@@ -60,7 +60,7 @@ int main(void) {
     assert(newline_output != NULL);
     char newline_bytes[6];
     assert(fread(newline_bytes, 1, sizeof(newline_bytes), newline_output) == 5);
-    assert(memcmp(newline_bytes, "tail\\n", 5) == 0);
+    assert(memcmp(newline_bytes, "tail\n", 5) == 0);
     assert(fclose(newline_output) == 0);
 
     FILE *empty = fopen(input_path, "wb");
