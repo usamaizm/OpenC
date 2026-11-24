@@ -16,14 +16,18 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    errno = 0;
     FILE *probe = fopen(filename, "rb");
     if (probe) {
-        fclose(probe);
-        if (load_file(buffer, filename) != 0) {
-            fprintf(stderr, "OpenC: failed to load %s\n", filename);
+        if (fclose(probe) != 0 || load_file(buffer, filename) != 0) {
+            fprintf(stderr, "OpenC: failed to load %s\\n", filename);
             free_text_buffer(buffer);
             return 1;
         }
+    } else if (errno != ENOENT) {
+        fprintf(stderr, "OpenC: unable to open %s\\n", filename);
+        free_text_buffer(buffer);
+        return 1;
     }
 
     if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO)) {
