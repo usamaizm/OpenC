@@ -128,7 +128,7 @@ int save_file(TextBuffer *buffer, const char *filename) {
     for (size_t i = 0; i < buffer->line_count; ++i) {
         size_t length = strlen(buffer->lines[i]);
         if (fwrite(buffer->lines[i], 1, length, file) != length ||
-            (i + 1 < buffer->line_count && fputc('\\n', file) == EOF)) {
+            (i + 1 < buffer->line_count && fputc('\n', file) == EOF)) {
             status = -1;
             break;
         }
