@@ -10,6 +10,6 @@ void render_text_buffer(const TextBuffer *buffer);
 void clear_screen(void);
 
 // Move the cursor to a specific row and column
-void move_cursor(int row, int col);
+void render_move_cursor(int row, int col);
 
 #endif // RENDER_H
