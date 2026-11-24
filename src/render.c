@@ -10,7 +10,7 @@ void clear_screen(void) {
     printf("%s%s", ANSI_CLEAR_SCREEN, ANSI_CURSOR_HOME);
 }
 
-void move_cursor(int row, int col) {
+void render_move_cursor(int row, int col) {
     printf("\033[%d;%dH", row + 1, col + 1);
 }
 
@@ -20,7 +20,7 @@ void render_text_buffer(const TextBuffer *buffer) {
     for (size_t i = 0; i < buffer->line_count; ++i) {
         printf("%s\r\n", buffer->lines[i]);
     }
-    move_cursor((int)buffer->cursor_row, (int)buffer->cursor_col);
+    render_move_cursor((int)buffer->cursor_row, (int)buffer->cursor_col);
     printf("%s", ANSI_CURSOR_SHOW);
     fflush(stdout);
 }
