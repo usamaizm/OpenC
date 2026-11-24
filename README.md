@@ -103,3 +103,8 @@ Open C is released under the MIT License, allowing open-source collaboration and
 - [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) — source-level issues identified before a reliable build can be claimed.
 
 The current repository is an early terminal-editor prototype. Cross-platform IDE status is a goal, not an implemented capability.
+
+
+## Ecosystem integration
+
+This project is part of a set of independent, interoperable open projects. See the [ecosystem integration contract](https://github.com/usamaizm/AIDB/blob/main/docs/ECOSYSTEM_INTEGRATION.md) for its role, interoperability boundaries, and integration principles.
