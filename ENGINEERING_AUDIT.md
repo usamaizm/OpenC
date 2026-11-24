@@ -1,33 +1,38 @@
-# Open C — Initial Engineering Audit
+# OpenC — Engineering Audit
 
-**Scope:** Top-level source and header inventory. This is a source review, not a compiled test report.
+**Updated:** 2026-11-24  
+**Scope:** Source-level review plus the current CI build and tests.
 
-## Findings
+## Findings and disposition
 
-### 1. Text-buffer API is inconsistent
-The entry point calls `init_text_buffer()`, while the inspected implementation defines `create_text_buffer()`. The implementation defines a private `TextBuffer` structure, while other modules access fields such as `num_lines`, `lines`, and cursor positions. These definitions cannot safely coexist as independent structure layouts.
+### 1. Text-buffer API inconsistency — resolved in the supported build
+The editor now uses the public TextBuffer definition from include/text_buffer.h. The implementation and callers share one set of functions for initialization, cleanup, line append, character insertion/deletion, newline insertion, cursor movement, and reset.
 
-### 2. Input and rendering are POSIX/terminal-specific
-The input implementation includes `unistd.h` and `termios.h`. This is a reasonable prototype backend for POSIX terminals, but it does not establish cross-platform support.
+### 2. Input and rendering are POSIX/terminal-specific — open
+The current backend uses termios, unistd, and ANSI terminal control. This is an intentional prototype target, not cross-platform support. A platform abstraction and additional backends remain future work.
 
-### 3. Main loop has no exit path
-The current loop runs indefinitely and does not provide a documented save/quit flow. Cleanup after the loop is therefore not reached during normal interaction.
+### 3. Main loop had no exit path — resolved
+Ctrl-Q exits the loop; Ctrl-S saves the current file. Terminal settings are restored on normal exit and registered for process-exit cleanup. Raw-mode initialization failures are reported rather than silently entering a broken input loop.
 
-### 4. File I/O needs robust handling
-The current file loader uses a fixed line buffer. Long lines may be split. Error handling, newline preservation, and allocation failures need explicit contracts.
+### 4. File I/O fixed-buffer and newline issues — substantially resolved
+The loader now grows its line buffer dynamically, handles long lines, resets the target buffer, and preserves final-newline structure. Save/load round-trip tests cover long lines, empty files, and trailing newlines. Broader error-injection and filesystem-permission tests remain open.
 
-### 5. Memory allocation needs hardening
-The inspected text-buffer implementation does not check allocation/reallocation failures and its growth strategy needs overflow protection.
+### 5. Allocation and growth handling — substantially resolved
+Text-buffer allocation and growth operations check allocation failures and guard size/capacity growth. The editor still needs broader fault-injection tests.
 
-## Priority order
+## Current verification
 
-1. Define the canonical text-buffer data model and public API.
-2. Reconcile declarations and implementations.
-3. Add allocation/error handling and tests.
-4. Add an explicit editor command/exit model.
-5. Separate editor core from platform-specific terminal I/O.
-6. Establish a reproducible build and CI.
+The CI workflow successfully built the editor and passed text-buffer and file-I/O tests:
 
-## Verification status
+- [OpenC CI run](https://github.com/usamaizm/OpenC/actions/runs/45387578692)
 
-No successful compile or test run is claimed by this audit. A local build or CI run is required before marking these findings resolved.
+This verifies the supported Linux/POSIX build and the test cases in the workflow. It does not verify Windows, macOS, all terminal emulators, Unicode editing, or full IDE behavior.
+
+## Remaining priorities
+
+1. Add scrolling, viewport management, and terminal-resize handling.
+2. Add unsaved-change detection and a safe save-as workflow.
+3. Expand tests for filesystem failures, allocation failures, and terminal restoration.
+4. Separate editor core from POSIX terminal input/rendering.
+5. Add Unicode-aware cursor movement and editing.
+6. Introduce syntax-aware editing, project navigation, and compiler adapters only behind tested interfaces.
