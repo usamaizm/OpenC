@@ -37,6 +37,18 @@ TextBuffer *init_text_buffer(void) {
     return buffer;
 }
 
+int clear_text_buffer(TextBuffer *buffer) {
+    if (!buffer) return -1;
+    char *empty_line = calloc(1, 1);
+    if (!empty_line) return -1;
+    for (size_t i = 0; i < buffer->line_count; ++i) free(buffer->lines[i]);
+    buffer->lines[0] = empty_line;
+    buffer->line_count = 1;
+    buffer->cursor_row = 0;
+    buffer->cursor_col = 0;
+    return 0;
+}
+
 void free_text_buffer(TextBuffer *buffer) {
     if (!buffer) return;
     for (size_t i = 0; i < buffer->line_count; ++i) free(buffer->lines[i]);
