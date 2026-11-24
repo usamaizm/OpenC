@@ -57,3 +57,8 @@ The long-term goal is a C-first IDE for building cross-platform C applications. 
 ## License
 
 See [LICENSE](LICENSE).
+
+
+## Contributor attribution
+
+Human and AI contributors must follow the [contributor identity and attribution protocol](CONTRIBUTOR_PROTOCOL.md). Keep the authenticated GitHub account separate from a contributor's self-declared identity; never guess who performed earlier work.
