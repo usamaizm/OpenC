@@ -60,6 +60,7 @@ int process_keypress(TextBuffer *buffer) {
         case 27: {
             int first = read_key();
             int second = read_key();
+            if (first < 0 || second < 0) return 3;
             if (first == '[') {
                 switch (second) {
                     case 'A': move_cursor(buffer, -1, 0); break;
